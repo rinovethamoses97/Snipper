@@ -8,18 +8,19 @@ let x2=null;
 let y2=null;
 let cropStart="stop";
 let cropImg=null;
+let border=30;
 function setup(){
-    createCanvas(1500,735);
+    createCanvas(window.innerWidth-50,window.innerHeight-50);
     saveButton=createButton("Save");
-    saveButton.position(width/2,30);
+    saveButton.position(width/2,10);
     saveButton.mouseClicked(downloadImage);
     
     cropButton=createButton("Crop");
-    cropButton.position(width/2+60,30);
+    cropButton.position(width/2+60,10);
     cropButton.mouseClicked(cropImage);
     
     resetButton=createButton("Reset");
-    resetButton.position(width/2+120,30);
+    resetButton.position(width/2+120,10);
     resetButton.mouseClicked(reset);   
 }
 function reset(){
@@ -28,7 +29,7 @@ function reset(){
 }
 function cropImage(){
     if(cropStart=="done"){
-        cropStart="stop";
+        cropStart="cropped";
         x1=x1-30;
         y1=y1-30;
         x2=x2-30;
@@ -43,8 +44,9 @@ function draw(){
         if(cropImg){
             image(cropImg,30,30,cropImg.width,cropImg.height);
         }
-        else
-            image(screenshot,30,30,1440,675);
+        else{
+            image(screenshot,0+border,0+border,screenshot.width,screenshot.height);
+        }
     }
     if(cropStart=="start"){    
         stroke(0);
@@ -58,9 +60,8 @@ function draw(){
     }
 }
 function mousePressed(){
+    if(mouseX>=border && mouseX<=width-border && mouseY>=border && mouseY<=height-border){
 
-    if(mouseX>=30 && mouseX<=1440 && mouseY>=30 && mouseY<=675){
-        console.log("Yes");
         if(cropStart=="stop"){
             cropStart="start";
             x1=mouseX;
@@ -83,7 +84,7 @@ function downloadImage(){
 $(document).ready(function(){
     console.log(localStorage.getItem("url"));
     loadImage(localStorage.getItem("url"),img=>{
-        screenshot=createImage(1440,675);
-        screenshot.copy(img,0,0,img.width,img.height,0,0,1440,675);
+        screenshot=createImage(width-(2*border),height-(2*border));
+        screenshot.copy(img,0,0,img.width,img.height,0,0,screenshot.width,screenshot.height);
     })
 })
