@@ -34,8 +34,23 @@ function cropImage(){
         y1=y1-30;
         x2=x2-30;
         y2=y2-30;   
-        cropImg=createImage(x2-x1,y2-y1)
-        cropImg.copy(screenshot,x1,y1,x2-x1,y2-y1,0,0,x2-x1,y2-y1);   
+        let tempX,tempY;
+        tempX=abs(x2-x1);
+        tempY=abs(y2-y1);
+        cropImg=createImage(tempX,tempY)
+        if(x1>x2 && y1<y2){
+            cropImg.copy(screenshot,x2,y1,tempX,tempY,0,0,tempX,tempY);   
+        }
+        else if(x1<x2 && y1>y2){
+            cropImg.copy(screenshot,x1,y2,tempX,tempY,0,0,tempX,tempY);      
+        }
+        else if(x1 > x2 && y1>y1){
+            cropImg.copy(screenshot,x2,y2,tempX,tempY,0,0,tempX,tempY);   
+        }
+        else{
+            cropImg.copy(screenshot,x1,y1,tempX,tempY,0,0,tempX,tempY);   
+        }
+        
     }
 }
 function draw(){
@@ -50,11 +65,13 @@ function draw(){
     }
     if(cropStart=="start"){    
         stroke(0);
+        strokeWeight(3);
         noFill();
         rect(x1,y1,mouseX-x1,mouseY-y1);
     }
     else if(cropStart=="done"){
         stroke(0);
+        strokeWeight(3);
         noFill();
         rect(x1,y1,x2-x1,y2-y1);
     }
@@ -82,7 +99,6 @@ function downloadImage(){
         screenshot.save("Screenshot","png");
 }
 $(document).ready(function(){
-    console.log(localStorage.getItem("url"));
     loadImage(localStorage.getItem("url"),img=>{
         screenshot=createImage(width-(2*border),height-(2*border));
         screenshot.copy(img,0,0,img.width,img.height,0,0,screenshot.width,screenshot.height);
