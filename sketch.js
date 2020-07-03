@@ -9,8 +9,9 @@ let y2=null;
 let cropStart="stop";
 let cropImg=null;
 let border=30;
+let drawButton;
 function setup(){
-    createCanvas(window.innerWidth-50,window.innerHeight-50);
+    createCanvas(window.innerWidth-50,window.innerHeight);
     saveButton=createButton("Save");
     saveButton.position(width/2,10);
     saveButton.mouseClicked(downloadImage);
@@ -44,7 +45,7 @@ function cropImage(){
         else if(x1<x2 && y1>y2){
             cropImg.copy(screenshot,x1,y2,tempX,tempY,0,0,tempX,tempY);      
         }
-        else if(x1 > x2 && y1>y1){
+        else if(x1 > x2 && y1>y2){
             cropImg.copy(screenshot,x2,y2,tempX,tempY,0,0,tempX,tempY);   
         }
         else{
@@ -78,7 +79,6 @@ function draw(){
 }
 function mousePressed(){
     if(mouseX>=border && mouseX<=width-border && mouseY>=border && mouseY<=height-border){
-
         if(cropStart=="stop"){
             cropStart="start";
             x1=mouseX;
