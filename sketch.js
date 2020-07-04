@@ -50,6 +50,7 @@ function reset(){
 function cropImage(){
     if(cropStart=="done"){
         cropStart="cropped";
+        graphics.clear();
         x1=x1-border;
         y1=y1-border;
         x2=x2-border;
@@ -104,7 +105,8 @@ function draw(){
         rect(x1,y1,x2-x1,y2-y1);
     }
     if(drawStart && mouseIsPressed){
-        graphics.stroke(0);
+        graphics.stroke(color(191, 255, 0,20));
+        graphics.strokeWeight(20);
         graphics.line(pmouseX,pmouseY,mouseX,mouseY);
     }
 }
