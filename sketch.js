@@ -10,6 +10,10 @@ let cropStart="stop";
 let cropImg=null;
 let border=30;
 let drawButton;
+let img;
+function preload(){
+    img=loadImage(localStorage.getItem("url"));
+}
 function setup(){
     createCanvas(window.innerWidth-50,window.innerHeight);
     saveButton=createButton("Save");
@@ -23,6 +27,9 @@ function setup(){
     resetButton=createButton("Reset");
     resetButton.position(width/2+120,10);
     resetButton.mouseClicked(reset);   
+
+    img.resize(width-(2*border),height-(2*border));
+    screenshot=img;
 }
 function reset(){
     cropStart="stop";
@@ -31,10 +38,10 @@ function reset(){
 function cropImage(){
     if(cropStart=="done"){
         cropStart="cropped";
-        x1=x1-30;
-        y1=y1-30;
-        x2=x2-30;
-        y2=y2-30;   
+        x1=x1-border;
+        y1=y1-border;
+        x2=x2-border;
+        y2=y2-border;   
         let tempX,tempY;
         tempX=abs(x2-x1);
         tempY=abs(y2-y1);
@@ -98,9 +105,3 @@ function downloadImage(){
     else
         screenshot.save("Screenshot","png");
 }
-$(document).ready(function(){
-    loadImage(localStorage.getItem("url"),img=>{
-        screenshot=createImage(width-(2*border),height-(2*border));
-        screenshot.copy(img,0,0,img.width,img.height,0,0,screenshot.width,screenshot.height);
-    })
-})
