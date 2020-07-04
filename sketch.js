@@ -6,16 +6,19 @@ let x1=null;
 let y1=null;
 let x2=null;
 let y2=null;
-let cropStart="stop";
+let cropStart="default";
 let cropImg=null;
 let border=30;
 let drawButton;
 let img;
+let drawStart=false;
+let graphics;
 function preload(){
     img=loadImage(localStorage.getItem("url"));
 }
 function setup(){
     createCanvas(window.innerWidth-50,window.innerHeight);
+    graphics=createGraphics(window.innerWidth-50,window.innerHeight);
     saveButton=createButton("Save");
     saveButton.position(width/2,10);
     saveButton.mouseClicked(downloadImage);
@@ -26,14 +29,23 @@ function setup(){
     
     resetButton=createButton("Reset");
     resetButton.position(width/2+120,10);
-    resetButton.mouseClicked(reset);   
-
+    resetButton.mouseClicked(reset);
+    
+    drawButton=createButton("Draw");
+    drawButton.position(width/2+180,10);
+    drawButton.mouseClicked(startDraw);
+    
     img.resize(width-(2*border),height-(2*border));
     screenshot=img;
 }
+function startDraw(){
+    drawStart=true;
+}
 function reset(){
-    cropStart="stop";
+    cropStart="default";
     cropImg=null;
+    graphics.clear();
+    drawStart=false;
 }
 function cropImage(){
     if(cropStart=="done"){
@@ -45,20 +57,27 @@ function cropImage(){
         let tempX,tempY;
         tempX=abs(x2-x1);
         tempY=abs(y2-y1);
-        cropImg=createImage(tempX,tempY)
+        cropImg=createImage(tempX,tempY);
+        let currentFrame=get();
+        let currentFrameWb=createImage(screenshot.width,screenshot.height);
+        currentFrameWb.copy(currentFrame,border,border,screenshot.width,screenshot.height,0,0,currentFrameWb.width,currentFrameWb.height);
         if(x1>x2 && y1<y2){
-            cropImg.copy(screenshot,x2,y1,tempX,tempY,0,0,tempX,tempY);   
+            cropImg.copy(currentFrameWb,x2,y1,tempX,tempY,0,0,tempX,tempY);   
         }
         else if(x1<x2 && y1>y2){
-            cropImg.copy(screenshot,x1,y2,tempX,tempY,0,0,tempX,tempY);      
+            cropImg.copy(currentFrameWb,x1,y2,tempX,tempY,0,0,tempX,tempY);      
         }
         else if(x1 > x2 && y1>y2){
-            cropImg.copy(screenshot,x2,y2,tempX,tempY,0,0,tempX,tempY);   
+            cropImg.copy(currentFrameWb,x2,y2,tempX,tempY,0,0,tempX,tempY);   
         }
         else{
-            cropImg.copy(screenshot,x1,y1,tempX,tempY,0,0,tempX,tempY);   
+            cropImg.copy(currentFrameWb,x1,y1,tempX,tempY,0,0,tempX,tempY);   
         }
         
+    }
+    else if(cropStart=="default"){
+        cropStart="stop";
+        drawStart=false;
     }
 }
 function draw(){
@@ -70,6 +89,7 @@ function draw(){
         else{
             image(screenshot,0+border,0+border,screenshot.width,screenshot.height);
         }
+        image(graphics,0,0);
     }
     if(cropStart=="start"){    
         stroke(0);
@@ -82,6 +102,10 @@ function draw(){
         strokeWeight(3);
         noFill();
         rect(x1,y1,x2-x1,y2-y1);
+    }
+    if(drawStart && mouseIsPressed){
+        graphics.stroke(0);
+        graphics.line(pmouseX,pmouseY,mouseX,mouseY);
     }
 }
 function mousePressed(){
@@ -100,8 +124,15 @@ function mousePressed(){
 }
 function downloadImage(){
     if(cropImg){
-        cropImg.save("Screenshot","png");
+        let currentFrame=get();
+        let currentFrameWb=createImage(cropImg.width,cropImg.height);
+        currentFrameWb.copy(currentFrame,border+3,border+3,cropImg.width-6,cropImg.height-6,0,0,currentFrameWb.width,currentFrameWb.height);
+        currentFrameWb.save("Screenshot","png");
     }
-    else
-        screenshot.save("Screenshot","png");
+    else{
+        let currentFrame=get();
+        let currentFrameWb=createImage(screenshot.width,screenshot.height);
+        currentFrameWb.copy(currentFrame,border,border,screenshot.width,screenshot.height,0,0,currentFrameWb.width,currentFrameWb.height);
+        currentFrameWb.save("Screenshot","png");
+    }
 }
