@@ -1,140 +1,114 @@
-let screenshot=null;
-let saveButton;
-let cropButton;
-let resetButton
-let x1=null;
-let y1=null;
-let x2=null;
-let y2=null;
-let cropStart="default";
-let cropImg=null;
-let border=30;
-let drawButton;
-let img;
-let drawStart=false;
-let graphics;
-function preload(){
-    img=loadImage(localStorage.getItem("url"));
-}
-function setup(){
-    createCanvas(window.innerWidth-50,window.innerHeight);
-    graphics=createGraphics(window.innerWidth-50,window.innerHeight);
-    saveButton=createButton("Save");
-    saveButton.position(width/2,10);
-    saveButton.mouseClicked(downloadImage);
-    
-    cropButton=createButton("Crop");
-    cropButton.position(width/2+60,10);
-    cropButton.mouseClicked(cropImage);
-    
-    resetButton=createButton("Reset");
-    resetButton.position(width/2+120,10);
-    resetButton.mouseClicked(reset);
-    
-    drawButton=createButton("Draw");
-    drawButton.position(width/2+180,10);
-    drawButton.mouseClicked(startDraw);
-    
-    img.resize(width-(2*border),height-(2*border));
-    screenshot=img;
-}
-function startDraw(){
-    drawStart=true;
-}
-function reset(){
+let image;
+let canvas;
+let cropStart;
+let rect;
+let x1,y1,x2,y2;
+$(document).ready(function(){
+    $("#canvas").attr("width",window.innerWidth-50);
+    $("#canvas").attr("height",window.innerHeight);   
     cropStart="default";
-    cropImg=null;
-    graphics.clear();
-    drawStart=false;
-}
-function cropImage(){
-    if(cropStart=="done"){
-        cropStart="cropped";
-        graphics.clear();
-        x1=x1-border;
-        y1=y1-border;
-        x2=x2-border;
-        y2=y2-border;   
-        let tempX,tempY;
-        tempX=abs(x2-x1);
-        tempY=abs(y2-y1);
-        cropImg=createImage(tempX,tempY);
-        let currentFrame=get();
-        let currentFrameWb=createImage(screenshot.width,screenshot.height);
-        currentFrameWb.copy(currentFrame,border,border,screenshot.width,screenshot.height,0,0,currentFrameWb.width,currentFrameWb.height);
-        if(x1>x2 && y1<y2){
-            cropImg.copy(currentFrameWb,x2,y1,tempX,tempY,0,0,tempX,tempY);   
-        }
-        else if(x1<x2 && y1>y2){
-            cropImg.copy(currentFrameWb,x1,y2,tempX,tempY,0,0,tempX,tempY);      
-        }
-        else if(x1 > x2 && y1>y2){
-            cropImg.copy(currentFrameWb,x2,y2,tempX,tempY,0,0,tempX,tempY);   
-        }
-        else{
-            cropImg.copy(currentFrameWb,x1,y1,tempX,tempY,0,0,tempX,tempY);   
-        }
-        
-    }
-    else if(cropStart=="default"){
-        cropStart="stop";
-        drawStart=false;
-    }
-}
-function draw(){
-    background(0);
-    if(screenshot){
-        if(cropImg){
-            image(cropImg,30,30,cropImg.width,cropImg.height);
-        }
-        else{
-            image(screenshot,0+border,0+border,screenshot.width,screenshot.height);
-        }
-        image(graphics,0,0);
-    }
-    if(cropStart=="start"){    
-        stroke(0);
-        strokeWeight(3);
-        noFill();
-        rect(x1,y1,mouseX-x1,mouseY-y1);
-    }
-    else if(cropStart=="done"){
-        stroke(0);
-        strokeWeight(3);
-        noFill();
-        rect(x1,y1,x2-x1,y2-y1);
-    }
-    if(drawStart && mouseIsPressed){
-        graphics.stroke(color(191, 255, 0,20));
-        graphics.strokeWeight(20);
-        graphics.line(pmouseX,pmouseY,mouseX,mouseY);
-    }
-}
-function mousePressed(){
-    if(mouseX>=border && mouseX<=width-border && mouseY>=border && mouseY<=height-border){
+    canvas=new fabric.Canvas("canvas");
+    canvas.observe('mouse:down', function(e) { mousedown(e); });
+    canvas.observe('mouse:move', function(e) { mousemove(e); });    
+    fabric.Image.fromURL(localStorage.getItem('url'), function(img) {        
+    image=img;
+    image.set("selectable",false);
+    image.set("evented",false);
+    image.set({
+        scaleX: (window.innerWidth-40) / image.width,
+        scaleY: (window.innerWidth-40) / image.width
+    });
+    canvas.add(image);
+    canvas.renderAll();
+    });
+    function mousedown(e){
         if(cropStart=="stop"){
             cropStart="start";
-            x1=mouseX;
-            y1=mouseY;
+            var mouse = canvas.getPointer(e.e);
+            x1=mouse.x;
+            y1=mouse.y;
+            rect=new fabric.Rect({ 
+                width: 0, 
+                height: 0, 
+                left: mouse.x, 
+                top: mouse.y, 
+                stroke: 'red',
+                strokeWidth: 2,
+                fill: 'rgba(255,0,0,255)',
+                opacity:0.5
+            });
+            canvas.add(rect); 
+            canvas.renderAll();
         }
         else if(cropStart=="start"){
+            canvas.remove(rect);
+            canvas.add(rect);
+            canvas.setActiveObject(rect);
             cropStart="done";
-            x2=mouseX;
-            y2=mouseY;
         }
-    }
-}
-function downloadImage(){
-    if(cropImg){
-        let currentFrame=get();
-        let currentFrameWb=createImage(cropImg.width,cropImg.height);
-        currentFrameWb.copy(currentFrame,border+3,border+3,cropImg.width-6,cropImg.height-6,0,0,currentFrameWb.width,currentFrameWb.height);
-        currentFrameWb.save("Screenshot","png");
-    }
-    else{
-        let currentFrame=get();
-        let currentFrameWb=createImage(screenshot.width,screenshot.height);
-        currentFrameWb.copy(currentFrame,border,border,screenshot.width,screenshot.height,0,0,currentFrameWb.width,currentFrameWb.height);
-        currentFrameWb.save("Screenshot","png");
-    }
-}
+    };
+    function mousemove(e){
+        if(cropStart=="start"){
+            var mouse = canvas.getPointer(e.e);
+            if(mouse.y<y1){
+                rect.set("top",mouse.y)
+            }
+            if(mouse.x<x1){
+                rect.set("left",mouse.x)
+            }
+            rect.set("width",Math.abs(mouse.x-x1))
+            rect.set("height",Math.abs(mouse.y-y1));
+            canvas.renderAll();
+        }
+    };
+    $("#crop").click(function(){
+        if(cropStart=="default"){
+            cropStart="stop"
+            image.set("selectable",false);
+            image.set("evented",false);
+        }
+        else if(rect && rect.width>0 && rect.height>0){
+            cropStart="default";    
+            image.cropX=image.cropX+(rect.left-image.left)/image.scaleX;
+            image.cropY=image.cropY+(rect.top-image.top)/image.scaleY;
+            image.width=(rect.width*rect.scaleX)/image.scaleX;
+            image.height=(rect.height*rect.scaleY)/image.scaleY;
+            image.left=0;
+            image.top=0;
+            canvas.remove(image);
+            // image.clipTo=function(ctx){
+            //     ctx.rect(rect.left/image.scaleX-(image.width/2),rect.top/image.scaleY-(image.height/2),rect.width/image.scaleX,rect.height/image.scaleY);
+            // }
+            canvas.remove(rect);
+            canvas.add(image);
+            canvas.renderAll();
+        }
+    });
+    $("#resize").click(function(){
+        image.set("selectable",true);
+        image.set("evented",true);
+        canvas.remove(rect);
+        canvas.setActiveObject(image);
+        canvas.renderAll();
+        cropStart="default";
+    });
+    $("#reset").click(function(){
+        canvas.remove(image);
+        cropStart="default";
+        fabric.Image.fromURL(localStorage.getItem('url'), function(img) {        
+            image=img;
+            image.set("selectable",false);
+            image.set("evented",false);
+            image.set({
+                scaleX: (window.innerWidth-40) / image.width,
+                scaleY: (window.innerWidth-40) / image.width
+            });
+            canvas.add(image);
+            canvas.renderAll();
+        });
+    });
+    $("#download").click(function(){
+        let dimage = image.toDataURL("image/jpg");
+        $("#download").attr("href",dimage);
+    })
+});
