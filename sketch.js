@@ -1,7 +1,7 @@
 let image;
 let canvas;
 let cropStart;
-let rect;
+let rect=null;
 let x1,y1,x2,y2;
 $(document).ready(function(){
     $("#canvas").attr("width",window.innerWidth-50);
@@ -67,7 +67,7 @@ $(document).ready(function(){
             image.set("selectable",false);
             image.set("evented",false);
         }
-        else if(rect && rect.width>0 && rect.height>0){
+        else if(rect){
             cropStart="default";    
             image.cropX=image.cropX+(rect.left-image.left)/image.scaleX;
             image.cropY=image.cropY+(rect.top-image.top)/image.scaleY;
@@ -80,6 +80,7 @@ $(document).ready(function(){
             //     ctx.rect(rect.left/image.scaleX-(image.width/2),rect.top/image.scaleY-(image.height/2),rect.width/image.scaleX,rect.height/image.scaleY);
             // }
             canvas.remove(rect);
+            rect=null;
             canvas.add(image);
             canvas.renderAll();
         }
